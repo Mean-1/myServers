@@ -1,24 +1,20 @@
 package main.java.com.service;
 
-import main.java.com.data.Data;
 import main.java.com.service.control.Controller;
 import main.java.com.service.control.IController;
 import main.java.com.service.control.Request;
 import main.java.com.service.proto.http.HttpRequest;
-import main.java.com.service.proto.http.HttpResponse;
 import main.java.com.service.proto.util.ProtoUtil;
 import main.java.com.service.util.ScanUtil;
 
 import java.io.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-
-import static com.sun.xml.internal.ws.api.message.Packet.Status.Response;
 
 /**
  * @ClassName: RequestExecute
@@ -32,6 +28,7 @@ public class RequestExecute extends Thread {
     private static Map<String, MethodPair> methodMap = new HashMap<>();
     private Socket socket;
 
+    //获取所有controller注解下的方法
     public void init() throws Exception {
         methodMap.clear();
         //1.扫描指定包下所有Controller类文件,并过滤 @Controller 注解
@@ -72,13 +69,14 @@ public class RequestExecute extends Thread {
 
         //输出流
         OutputStream out = null;
-        PrintWriter printWriter = null;
-        HttpRequest httpRequest = new HttpRequest((byte) 1, "requestCommand", 11);
-        HttpResponse httpResponse = new HttpResponse((byte) 1, "responseCommand", 11);
+        PrintWriter print = null;
+        //请求
+        HttpRequest httpRequest = null;
+
         try {
             //初始化输出流
             out = socket.getOutputStream();
-            printWriter = new PrintWriter(out);
+            print = new PrintWriter(out);
 
             //初始化输入流
             in = socket.getInputStream();
@@ -93,7 +91,7 @@ public class RequestExecute extends Thread {
             //请求ip地址
             String host = "";
             //循环读取输入字符流的数据
-            while ((line=bufferedReader.readLine())!=null){
+            /*while ((line=bufferedReader.readLine())!=null){
                 System.out.println(line);
                 //取第一行
                 if(lineNum==1){
@@ -119,46 +117,47 @@ public class RequestExecute extends Thread {
                 if(line.equals("")){
                     break;
                 }
-            }
+            }*/
 
             // 1. 解析http协议
-//            ProtoUtil.readRequest(in);
+//            httpRequest = ProtoUtil.readRequest(in);
+            httpRequest = ProtoUtil.parse2request(in);
+
+            //对message中的中文进行解码
+            httpRequest.setMessage(URLDecoder.decode(httpRequest.getMessage(), StandardCharsets.UTF_8.toString()));
+
 
 
             // 2.执行url对应方法
-            MethodPair methodPair = methodMap.get(reqPath);
-            Object result = methodPair.method.invoke(methodPair.impl, httpRequest, httpResponse);
+            MethodPair methodPair = methodMap.get(httpRequest.getUri());
+
+            //返回结果
+            Object result = null;
+            if(methodPair!=null){
+                result = methodPair.method.invoke(methodPair.impl, httpRequest);
+            }
 
 
             // 3.返回response
 
+            //当有结果则返回成功的response
+            String response = ProtoUtil.buildSuccessResponse(httpRequest, result.toString(),200);
+            System.out.println("-------response-------");
+            System.out.println(response);
+            print.println(response);
+            print.flush();
+            System.out.println("请求类型："+httpRequest.getMethod());
+            System.out.println("解析请求地址："+httpRequest.getUri());
+            System.out.println("返回结果："+result);
 
-            System.out.println("请求类型："+head);
-            System.out.println("解析请求地址："+host+reqPath);
-            //处理请求输出信息
-            if(!reqPath.equals("")){
-                //默认访问返回响应头
-                if(reqPath.equals("/")){
-                    printWriter.println("HTTP/1.1 200 OK");
-                    printWriter.println("Content-Type:text/html;charset=utf-8");
-                    printWriter.println();
-                    printWriter.println("<h2>欢迎成功访问网页</h2>");
-                    printWriter.flush();
-                }else {
-                    //去除请求地址前的 /
-                    reqPath = reqPath.substring(1);
-                    String resourcePath = Data.resourcePath;
-
-                    if(reqPath.contains("/")){//包含子目录
-
-                    }else {//只在根目录
-
-                    }
-                }
-            }
 
         }catch (Exception e){
             e.printStackTrace();
+            //返回错误的response
+            String response = ProtoUtil.buildSuccessResponse(httpRequest, e.toString(),500);
+            print.println(response);
+            print.flush();
+
             throw new RuntimeException(e);
         }finally {
             try {
@@ -166,7 +165,7 @@ public class RequestExecute extends Thread {
                 reader.close();
                 bufferedReader.close();
                 out.close();
-                printWriter.close();
+                print.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

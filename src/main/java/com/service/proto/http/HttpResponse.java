@@ -1,5 +1,7 @@
 package main.java.com.service.proto.http;
 
+import java.util.Map;
+
 /**
  * @ClassName: HttpResponse
  * @Description:
@@ -10,58 +12,68 @@ package main.java.com.service.proto.http;
 public class HttpResponse {
 
     /**
-     * 编码
+     * 响应版本
      */
-    private byte encode;
+    private String version;
 
     /**
-     * 响应内容
+     * 响应状态码
      */
-    private String response;
+
+    private int code;
 
     /**
-     * 响应长度
+     * 状态信息
      */
-    private int responseLength;
+    private String status;
 
-    public HttpResponse() {
-        super();
+    /**
+     *响应头
+     */
+    private Map<String, String> headers;
+
+    /**
+     * 响应正文
+     */
+    private String message;
+
+    public String getVersion() {
+        return version;
     }
 
-    public HttpResponse(byte encode, String response, int responseLength) {
-        super();
-        this.encode = encode;
-        this.response = response;
-        this.responseLength = responseLength;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
-    public byte getEncode() {
-        return encode;
+    public int getCode() {
+        return code;
     }
 
-    public void setEncode(byte encode) {
-        this.encode = encode;
+    public void setCode(int code) {
+        this.code = code;
     }
 
-    public String getResponse() {
-        return response;
+    public String getStatus() {
+        return status;
     }
 
-    public void setResponse(String response) {
-        this.response = response;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public int getResponseLength() {
-        return responseLength;
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
-    public void setResponseLength(int responseLength) {
-        this.responseLength = responseLength;
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
-    @Override
-    public String toString() {
-        return "Response [encode=" + encode + ", response=" + response
-                + ", responseLength=" + responseLength + "]";
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

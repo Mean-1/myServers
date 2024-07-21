@@ -1,5 +1,7 @@
 package main.java.com.service.proto.http;
 
+import java.util.Map;
+
 /**
  * @ClassName: HttpRequest
  * @Description:
@@ -11,56 +13,66 @@ package main.java.com.service.proto.http;
 public class HttpRequest {
 
     /**
-     * 协议编码
+     * 请求方法 GET/POST/PUT/DELETE/OPTION...
      */
-    private byte encode;
+    private String method;
+    /**
+     * 请求的uri
+     */
+    private String uri;
 
     /**
-     * 命令
+     * HTTP版本
      */
-    private String command;
+    private String version;
 
     /**
-     * 命令长度
+     * 请求头
      */
-    private int commandLength;
+    private Map<String, String> headers;
 
-    public HttpRequest() {
+    /**
+     * 请求参数相关
+     */
+    private String message;
+
+    public void setMethod(String method) {
+        this.method = method;
     }
 
-    public HttpRequest(byte encode, String command, int commandLength) {
-        this.encode = encode;
-        this.command = command;
-        this.commandLength = commandLength;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
-    public byte getEncode() {
-        return encode;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
-    public void setEncode(byte encode) {
-        this.encode = encode;
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
-    public String getCommand() {
-        return command;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public void setCommand(String command) {
-        this.command = command;
+    public String getMethod() {
+        return method;
     }
 
-    public int getCommandLength() {
-        return commandLength;
+    public String getUri() {
+        return uri;
     }
 
-    public void setCommandLength(int commandLength) {
-        this.commandLength = commandLength;
+    public String getVersion() {
+        return version;
     }
 
-    @Override
-    public String toString() {
-        return "Request [encode=" + encode + ", command=" + command
-                + ", commandLength=" + commandLength + "]";
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
